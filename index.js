@@ -4,7 +4,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 
 // 1. Configuration
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',             // Next.js local
   'https://ton-nextjs-client.vercel.app',  // ton Next.js en prod
@@ -32,16 +32,38 @@ app.get('/', (req, res) => {
 });
 
 app.post('/send-message', express.json(), (req, res) => {
-  const { message } = req.body;
+  const { message, url } = req.body;
 
-  if (!message) {
+  if (!message && !url) {
     return res.status(400).json({ error: 'Message manquant' });
   }
 
   io.emit('receive_message', { message });
   console.log('📨 Message envoyé:', message);
+  console.log('📨 BASE URL :', url);
 
-  return res.json({ success: true });
+  return res.json({ 
+    success: true, 
+    message: 'message envoyer avec success',
+    contenu: req.body.message,
+  });
+});
+
+app.post('/devis-notification', express.json(), (req, res) => {
+  //const { type, message, user, devis } = req.body;
+  const data = req.body;
+  if (!data) {
+    return res.status(400).json({ error: 'Message manquant' });
+  }
+
+  io.emit('receive_message', { ...data });
+  console.log('📨 Message envoyé:', data);
+
+  return res.json({ 
+    success: true, 
+    message: 'message envoyer avec success',
+    contenu: {...data},
+  });
 });
 
 // 4. Événements WebSocket
@@ -60,5 +82,5 @@ io.on('connection', (socket) => {
 
 // 5. Lancement du serveur
 server.listen(PORT, () => {
-  console.log(`🚀 Serveur Socket.IO démarré sur le port ${PORT}`);
+  console.log(`🚀 Serveur Socket.IO démarré sur le port ${PORT} ou ${process.env.PORT} `);
 });
